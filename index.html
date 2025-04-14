@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en"> 
+ <head> 
+  <meta charset="UTF-8"> 
+  <title>LIMO Clicker</title> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&amp;display=swap" rel="stylesheet"> 
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      color: white;
+      background: black;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      width: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    #counter {
+      font-size: 40px;
+      margin-bottom: 25px;
+    }
+
+    #tap-btn {
+      width: 200px;
+      height: 200px;
+      background: url('https://i.imgur.com/waUpxxR.png') no-repeat center;
+      background-size: contain;
+      border: none;
+      border-radius: 50%;
+      box-shadow: 0 0 60px 30px white;
+      animation: glowPulse 1.5s infinite ease-in-out;
+      transition: transform 0.1s;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { box-shadow: 0 0 60px 30px white; }
+      50% { box-shadow: 0 0 80px 40px white; }
+    }
+
+    #tap-btn:active {
+      transform: scale(0.95);
+    }
+
+    .plus-one {
+      position: absolute;
+      font-size: 18px;
+      color: white;
+      animation: floatUp 0.6s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-50px); }
+    }
+
+    #bottom-bar {
+      position: absolute;
+      bottom: 20px;
+      width: 90%;
+      height: 60px;
+      border: 2px solid white;
+      border-radius: 25px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: transparent;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .bar-option {
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      text-align: center;
+      color: white;
+    }
+
+    .bar-option span {
+      display: block;
+      font-size: 24px;
+    }
+
+    #address-input {
+      width: 80%;
+      max-width: 300px;
+      padding: 10px;
+      border-radius: 15px;
+      border: none;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    #continue-btn, .buy-btn {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: white;
+      color: black;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #success-msg, #error-msg {
+      display: none;
+      margin-top: 10px;
+    }
+
+    #success-msg { color: #00ff88; }
+    #error-msg { color: red; }
+
+    .upgrade-card {
+      border: 2px solid white;
+      border-radius: 20px;
+      background: rgba(0,0,0,0.5);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      width: 300px;
+      margin-top: 20px;
+    }
+
+    .upgrade-card span {
+      font-size: 50px;
+      margin-right: 15px;
+    }
+
+    .upgrade-info {
+      flex-grow: 1;
+    }
+
+    .upgrade-title {
+      font-size: 20px;
+      color: white;
+      font-weight: bold;
+    }
+
+    .upgrade-cost {
+      font-size: 14px;
+      color: white;
+    }
+
+    #popup-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(5px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    #popup-overlay.active {
+      display: flex;
+    }
+
+    .popup-content {
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px;
+      padding: 20px;
+      width: 90%;
+      max-width: 320px;
+      color: black;
+      position: relative;
+      animation: popupScale 0.3s ease-out;
+    }
+
+    @keyframes popupScale {
+      0% { transform: scale(0.85); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .popup-content .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .popup-desc {
+      margin: 15px 0;
+      font-size: 14px;
+    }
+
+    .popup-buy {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 12px;
+      font-weight: bold;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    #loading-screen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: black;
+      color: white;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+
+    #loading-screen.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .claimed {
+      filter: grayscale(1);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .claimed .upgrade-cost {
+      background: gray;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 8px;
+      display: inline-block;
+    }
+  </style> 
+ </head> 
+ <body> 
+  <div id="loading-screen">
+   <div class="loading-text">
+    Loading...
+   </div>
+  </div> 
+  <div id="game-screen" class="screen active"> 
+   <div id="counter">
+    0 $LIMO
+   </div> <button id="tap-btn" onclick="tap()"></button> 
+  </div> 
+  <div id="withdraw-screen" class="screen"> 
+   <div id="success-msg">
+    Withdraw successful. Wait for admin to accept.
+   </div> 
+   <h2>Withdraw</h2> 
+   <input type="text" id="address-input" placeholder="Paste LIMO address"> <button id="continue-btn" onclick="submitWithdraw()">Continue</button> 
+   <div id="error-msg">
+    Please paste your address.
+   </div> 
+  </div> 
+  <div id="upgrade-screen" class="screen"> <span style="font-size: 80px;">🚀</span> 
+   <h2>Upgrades</h2> 
+   <div id="upgrade-counter" style="margin-bottom: 10px;">
+    0 $LIMO
+   </div> 
+   <div class="upgrade-card" onclick="openUpgradePopup()"> <span>⛏</span> 
+    <div class="upgrade-info"> 
+     <div class="upgrade-title">
+      Tap Upgrade
+     </div> 
+     <div class="upgrade-cost">
+      10,000 per upgrade
+     </div> 
+    </div> 
+   </div> 
+  </div> 
+  <div id="tasks-screen" class="screen"> 
+   <img src="https://i.imgur.com/waUpxxR.png" alt="LIMO Coin" style="width: 100px; margin-bottom: 10px;"> 
+   <h2 style="font-size: 26px;">Earn More $LIMO</h2> 
+   <div class="upgrade-card" id="joining-bonus" onclick="claimJoiningBonus()"> <span>🎁</span> 
+    <div class="upgrade-info"> 
+     <div class="upgrade-title">
+      Joining Bonus
+     </div> 
+     <div class="upgrade-cost" id="claim-btn">
+      Claim 50,000 $LIMO
+     </div> 
+    </div> 
+   </div> 
+  </div> 
+  <div id="popup-overlay"> 
+   <div class="popup-content"> 
+    <div class="close-btn" onclick="closePopup()">
+     ✕
+    </div> 
+    <div class="upgrade-card"> <span>⛏</span> 
+     <div class="upgrade-info"> 
+      <div class="upgrade-title">
+       Tap Upgrade
+      </div> 
+      <div class="upgrade-cost">
+       10,000 per upgrade
+      </div> 
+     </div> 
+    </div> 
+    <div class="popup-desc">
+     By purchasing this upgrade, each tap will earn you +1 more coin!
+    </div> <button class="popup-buy" onclick="buyUpgrade()">Buy</button> 
+    <div id="upgrade-error" style="color: red; margin-top: 10px; display: none;">
+     Not enough coins!
+    </div> 
+   </div> 
+  </div> 
+  <div id="bottom-bar"> 
+   <div class="bar-option" onclick="goToGame()"> <span>⛏</span>Mining 
+   </div> 
+   <div class="bar-option" onclick="goToUpgrade()"> <span>🚀</span>Upgrade 
+   </div> 
+   <div class="bar-option" onclick="goToTasks()"> <span>📦</span>Tasks 
+   </div> 
+   <div class="bar-option" onclick="goToWithdraw()"> <span>💸</span>Withdraw 
+   </div> 
+  </div> 
+  <script>
+    let coins = parseInt(localStorage.getItem('limocoins')) || 0;
+    let tapPower = parseInt(localStorage.getItem('tapPower')) || 1;
+    const counter = document.getElementById('counter');
+    const upgradeCounter = document.getElementById('upgrade-counter');
+    const popup = document.getElementById('popup-overlay');
+    const errorText = document.getElementById('upgrade-error');
+    const loadingScreen = document.getElementById('loading-screen');
+
+    function updateCounter() {
+      counter.textContent = coins + " $LIMO";
+      upgradeCounter.textContent = coins + " $LIMO";
+      localStorage.setItem('limocoins', coins);
+    }
+
+    function tap() {
+      coins += tapPower;
+      updateCounter();
+      const pop = document.createElement('div');
+      pop.className = 'plus-one';
+      pop.textContent = `+${tapPower}`;
+      pop.style.left = '50%';
+      pop.style.top = '50%';
+      pop.style.transform = 'translate(-50%, -50%)';
+      document.body.appendChild(pop);
+      setTimeout(() => pop.remove(), 600);
+    }
+
+    function goToScreen(screenId) {
+      showLoading(300);
+      setTimeout(() => {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+      }, 300);
+    }
+
+    function goToGame() { goToScreen('game-screen'); }
+    function goToWithdraw() { goToScreen('withdraw-screen'); }
+    function goToUpgrade() { goToScreen('upgrade-screen'); }
+    function goToTasks() { goToScreen('tasks-screen'); }
+
+    function submitWithdraw() {
+      const address = document.getElementById('address-input').value.trim();
+      if (address === "") {
+        document.getElementById('error-msg').style.display = 'block';
+        document.getElementById('success-msg').style.display = 'none';
+      } else {
+        document.getElementById('error-msg').style.display = 'none';
+        document.getElementById('success-msg').style.display = 'block';
+      }
+    }
+
+    function openUpgradePopup() {
+      popup.classList.add('active');
+      errorText.style.display = 'none';
+    }
+
+    function closePopup() {
+      popup.classList.remove('active');
+    }
+
+    function buyUpgrade() {
+      if (coins >= 10000) {
+        coins -= 10000;
+        tapPower += 1;
+        localStorage.setItem('tapPower', tapPower);
+        updateCounter();
+        closePopup();
+      } else {
+        errorText.style.display = 'block';
+      }
+    }
+
+    function claimJoiningBonus() {
+      if (localStorage.getItem('bonusClaimed')) return;
+
+      coins += 50000;
+      updateCounter();
+
+      const pop = document.createElement('div');
+      pop.className = 'plus-one';
+      pop.textContent = `+50000`;
+      pop.style.left = '50%';
+      pop.style.top = '40%';
+      pop.style.transform = 'translate(-50%, -50%)';
+      document.body.appendChild(pop);
+      setTimeout(() => pop.remove(), 600);
+
+      localStorage.setItem('bonusClaimed', 'true');
+      markBonusClaimed();
+    }
+
+    function markBonusClaimed() {
+      const card = document.getElementById('joining-bonus');
+      const btn = document.getElementById('claim-btn');
+      card.classList.add('claimed');
+      btn.textContent = "Claimed";
+    }
+
+    function showLoading(duration = 300) {
+      loadingScreen.classList.remove('hide');
+      setTimeout(() => {
+        loadingScreen.classList.add('hide');
+      }, duration);
+    }
+
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        loadingScreen.classList.add('hide');
+      }, 1000);
+
+      if (localStorage.getItem('bonusClaimed')) {
+        markBonusClaimed();
+      }
+
+      updateCounter();
+    });
+  </script> 
+ 
+</body></html>
